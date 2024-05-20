@@ -127,7 +127,7 @@ export const Main = () => {
       LLM: LLM,
     };
 
-    fetch(`${process.env.backendURL}`, {
+    fetch(`https://chatpro-algohype.replit.app/pro/add/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
