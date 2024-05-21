@@ -20,7 +20,7 @@ export const Main = () => {
   const [transcription, setTranscription] = useState("");
   const [chatHistory, setChatHistory] = useState([]);
   const [showAnimation, setShowAnimation] = useState(false);
-  const [LLM, setModel] = useState("google-gemini");
+  const [LLM, setModel] = useState("gpt-3.5-turbo");
   const [inputText, setInputText] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const beepAudioRef = useRef(
