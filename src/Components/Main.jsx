@@ -161,8 +161,8 @@ export const Main = () => {
       .then((response) => response.json())
       .then((data) => {
         beepAudioRef2.current.play();
-        console.log("audio_content", data.audio_content);
-        console.log("data", data);
+        // console.log("audio_content", data.audio_content);
+        // console.log("data", data);
         const answer = data.data[3];
         addToChat(answer, "answer");
 
