@@ -67,18 +67,22 @@ export const Main = () => {
     setChatStarted(false);
   };
   const startNewChat = () => {
-    setChatHistory([]); // Clears the chat history
-    setChatStarted(false); // Resets the chat started flag
+    setChatHistory([]); 
+    setChatStarted(false); 
   };
 
   const startSpeechRecognition = () => {
-    const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+      console.error('Speech Recognition API is not supported in this browser.');
+      return;
+    }
+  
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
     recognition.lang = "en-US";
     recognition.interimResults = true;
     recognition.maxAlternatives = 1;
-
+  
     recognition.onresult = (event) => {
       const transcript = event.results[event.results.length - 1][0].transcript
         .trim()
@@ -93,29 +97,49 @@ export const Main = () => {
         handleSend(transcript, true);
       }
     };
-
+  
     recognition.onspeechend = () => {
       recognition.stop();
       setIsListening(false);
     };
-
+  
     recognition.onerror = (event) => {
       console.error("Speech Recognition Error:", event.error);
+      switch (event.error) {
+        case 'no-speech':
+          console.error('No speech was detected. Please try again.');
+          break;
+        case 'audio-capture':
+          console.error('No microphone was found. Ensure that a microphone is installed and that microphone settings are configured correctly.');
+          break;
+        case 'not-allowed':
+          console.error('Permission to use the microphone is blocked. To change, go to chrome://settings/content/microphone and allow this site.');
+          break;
+        default:
+          console.error('An unknown error occurred.');
+          break;
+      }
     };
-
+  
+    recognition.onaudiostart = () => {
+      console.log('Audio capturing started.');
+    };
+  
+    recognition.onaudioend = () => {
+      console.log('Audio capturing ended.');
+    };
+  
+    recognition.onstart = () => {
+      console.log('Speech recognition service has started.');
+    };
+  
+    recognition.onend = () => {
+      console.log('Speech recognition service disconnected.');
+    };
+  
     recognition.start();
     speechRecognitionRef.current = recognition;
     setIsListening(true);
-  };
-
-  const stopSpeaking = () => {
-    window.speechSynthesis.cancel();
-    if (speechRecognitionRef.current) {
-      speechRecognitionRef.current.stop();
-      speechRecognitionRef.current = null;
-    }
-    setIsListening(false);
-    setShowAnimation(false);
   };
 
   const handleSend = (text = inputText, isSpeech = false) => {
