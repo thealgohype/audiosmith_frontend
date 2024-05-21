@@ -20,7 +20,7 @@ export const Main = () => {
   const [transcription, setTranscription] = useState("");
   const [chatHistory, setChatHistory] = useState([]);
   const [showAnimation, setShowAnimation] = useState(false);
-  const [LLM, setModel] = useState("google-gemini");
+  const [LLM, setModel] = useState("gpt-3.5-turbo");
   const [inputText, setInputText] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const beepAudioRef = useRef(
@@ -67,46 +67,10 @@ export const Main = () => {
     setChatStarted(false);
   };
   const startNewChat = () => {
-    setChatHistory([]); // Clears the chat history
-    setChatStarted(false); // Resets the chat started flag
+    setChatHistory([]); 
+    setChatStarted(false); 
   };
 
-  // const startSpeechRecognition = () => {
-  //   const SpeechRecognition =
-  //     window.SpeechRecognition || window.webkitSpeechRecognition;
-  //   const recognition = new SpeechRecognition();
-  //   recognition.lang = "en-US";
-  //   recognition.interimResults = true;
-  //   recognition.maxAlternatives = 1;
-
-  //   recognition.onresult = (event) => {
-  //     const transcript = event.results[event.results.length - 1][0].transcript
-  //       .trim()
-  //       .toLowerCase();
-  //     if (transcript.includes("stop")) {
-  //       stopSpeaking();
-  //       return;
-  //     }
-  //     if (event.results[event.results.length - 1].isFinal) {
-  //       playBeep();
-  //       setTranscription(transcript);
-  //       handleSend(transcript, true);
-  //     }
-  //   };
-
-  //   recognition.onspeechend = () => {
-  //     recognition.stop();
-  //     setIsListening(false);
-  //   };
-
-  //   recognition.onerror = (event) => {
-  //     console.error("Speech Recognition Error:", event.error);
-  //   };
-
-  //   recognition.start();
-  //   speechRecognitionRef.current = recognition;
-  //   setIsListening(true);
-  // };
   const startSpeechRecognition = () => {
     if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
       console.error('Speech Recognition API is not supported in this browser.');
