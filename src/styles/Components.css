@@ -510,7 +510,7 @@ height: 21.064px;
 } */
 
 
-
+/* Existing desktop styles */
 .main-container {
     display: flex;
     flex-direction: column;
@@ -772,9 +772,7 @@ height: 21.064px;
     border: 3px solid transparent;
 }
 
-
 /* Add this CSS to your Components.css file */
-
 
 /* Listening Animation */
 .listening-animation {
@@ -786,34 +784,34 @@ height: 21.064px;
     align-items: center;
     justify-content: center;
     z-index: 1000;
-  }
+}
   
-  .listening-animation div {
+.listening-animation div {
     width: 15px;
     height: 15px;
     background-color: #00bcd4;
     border-radius: 50%;
     margin: 0 5px;
     animation: pulsing 1s infinite;
-  }
+}
   
-  .listening-animation div:nth-child(2) {
+.listening-animation div:nth-child(2) {
     animation-delay: 0.2s;
-  }
+}
   
-  .listening-animation div:nth-child(3) {
+.listening-animation div:nth-child(3) {
     animation-delay: 0.4s;
-  }
+}
   
-  .listening-animation div:nth-child(4) {
+.listening-animation div:nth-child(4) {
     animation-delay: 0.6s;
-  }
+}
   
-  .listening-animation div:nth-child(5) {
+.listening-animation div:nth-child(5) {
     animation-delay: 0.8s;
-  }
+}
   
-  @keyframes pulsing {
+@keyframes pulsing {
     0% {
       transform: scale(1);
       opacity: 1;
@@ -826,7 +824,7 @@ height: 21.064px;
       transform: scale(1);
       opacity: 1;
     }
-  }
+}
 /* Speaking Animation */
 .speaking-animation {
     position: fixed;
@@ -837,26 +835,26 @@ height: 21.064px;
     align-items: center;
     justify-content: center;
     z-index: 1000;
-  }
+}
   
-  .speaking-animation div {
+.speaking-animation div {
     position: absolute;
     width: 80px;
     height: 80px;
     border: 4px solid rgba(76, 175, 80, 0.7);
     border-radius: 50%;
     animation: concentric 1.2s infinite;
-  }
+}
   
-  .speaking-animation div:nth-child(2) {
+.speaking-animation div:nth-child(2) {
     animation-delay: 0.4s;
-  }
+}
   
-  .speaking-animation div:nth-child(3) {
+.speaking-animation div:nth-child(3) {
     animation-delay: 0.8s;
-  }
+}
   
-  @keyframes concentric {
+@keyframes concentric {
     0% {
       transform: scale(0.5);
       opacity: 1;
@@ -865,5 +863,86 @@ height: 21.064px;
       transform: scale(2);
       opacity: 0;
     }
-  }
+}
      
+/* Mobile view styles */
+@media (max-width: 768px) {
+    .main-container {
+        flex-direction: column;
+        width: 100%;
+        height: auto;
+        border-radius: 10px;
+        border: 5px solid #DFD5EC;
+        background: #131313;
+        padding: 10px;
+    }
+
+    .inbuilt-prompt {
+        margin-top: 10px;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        display: flex;
+        width: 100%;
+    }
+
+    .inbuilt-prompt-div {
+        flex: 1 1 100%;
+        max-width: 90%;
+        min-height: 150px;
+        margin-top: 10%;
+        padding: 5px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .input-wrapper {
+        flex-direction: column;
+        position: fixed;
+        bottom: 10px;
+        width: 100%;
+        padding: 5px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .input-box {
+        width: 80%;
+        margin-bottom: 5px;
+        border-radius: 14px;
+        padding: 10px;
+    }
+
+    .icons-container {
+        width: 80%;
+        justify-content: space-between;
+        display: flex;
+        align-items: center;
+    }
+
+    .input-icon {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+
+    .send-icon {
+        width: 35px;
+        margin-left: 10px;
+    }
+
+    .chat-container {
+        width: 100%;
+        height: 60vh;
+        padding: 5px;
+    }
+
+    .input-query,
+    .chat-response {
+        width: 90%;
+        margin-left: 5%;
+    }
+}
