@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useContext } from "react";
 import {
   FaMicrophone,
   FaPaperPlane,
@@ -14,33 +14,56 @@ import arrowcirclebrokenright from "../heroimages/arrow-circle-broken-right.svg"
 import ellipse from "../heroimages/Ellipse 93.svg";
 import tool from "../heroimages/tool-01.svg";
 import microphone from "../heroimages/microphone-01.svg";
+import axios from 'axios';
+import { AppContext } from "./AppProvider";
 
 export const Main = () => {
   const [isListening, setIsListening] = useState(false);
   const [transcription, setTranscription] = useState("");
   const [chatHistory, setChatHistory] = useState([]);
   const [showAnimation, setShowAnimation] = useState(false);
-  const [LLM, setModel] = useState("gpt-3.5-turbo");
+  const [LLM, setModel] = useState("google-gemini");
   const [inputText, setInputText] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const beepAudioRef = useRef(
     new Audio(
-      "https://file.notion.so/f/f/d63da4d3-2abc-444e-8eab-6e3acc166743/1b0e0826-4588-4fd4-83ac-bcca2fbb6c28/clickti_-_3.mp3?id=87b35fc2-1d96-4eef-9b23-db2cc6e72fb1&table=block&spaceId=d63da4d3-2abc-444e-8eab-6e3acc166743&expirationTimestamp=1716883200000&signature=aDbKnXAkXJ9tKN1e1ZlMFtH5HETxLk25Kv2sA-aQ8mY"
+      "https://file.notion.so/f/f/d63da4d3-2abc-444e-8eab-6e3acc166743/1b0e0826-4588-4fd4-83ac-bcca2fbb6c28/clickti_-_3.mp3?id=87b35fc2-1d96-4eef-9b23-db2cc6e72fb1&table=block&spaceId=d63da4d3-2abc-444e-8eab-6e3acc166743&expirationTimestamp=1717581600000&signature=xvrbUgxrrcSvdMf0Sgy6GwOJLL5mojUz2VQ5IXCslCg"
     )
   );
   const beepAudioRef2 = useRef(
     new Audio(
-      "https://file.notion.so/f/f/d63da4d3-2abc-444e-8eab-6e3acc166743/b61a9ecf-7160-4f55-8c55-c562525716d0/Tech_Message.mp3?id=979953c8-6948-4b02-b495-2741e3f5b710&table=block&spaceId=d63da4d3-2abc-444e-8eab-6e3acc166743&expirationTimestamp=1716883200000&signature=k_iJVy02rKL7Wzx-FS7Uksw6Gy9OxPt15EwzvzWab5w"
+      "https://file.notion.so/f/f/d63da4d3-2abc-444e-8eab-6e3acc166743/1b0e0826-4588-4fd4-83ac-bcca2fbb6c28/clickti_-_3.mp3?id=87b35fc2-1d96-4eef-9b23-db2cc6e72fb1&table=block&spaceId=d63da4d3-2abc-444e-8eab-6e3acc166743&expirationTimestamp=1717581600000&signature=xvrbUgxrrcSvdMf0Sgy6GwOJLL5mojUz2VQ5IXCslCg"
     )
   );
   const speechRecognitionRef = useRef(null);
   const chatEndRef = useRef(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [chatStarted, setChatStarted] = useState(false);
+  const { selectedItem } = useContext(AppContext);
+  const [aires, setAires] = useState([]);
+  const [userName,setUserName] = useState("Prashant")
+  // console.log("dataonmain", selectedItem);
 
-  // const toggleSidebar = () => {
-  //   setIsSidebarOpen(!isSidebarOpen);
-  // };
+
+  const fetchData = () => {
+    axios.get("https://chatpro-algohype.replit.app/api/get/")
+      .then(response => {
+        let obj = response.data.grouped_data;
+        for (let k in obj) {
+          if (selectedItem === k) {
+            console.log("data in main", obj[k]);
+            setAires(obj[k]);
+          }
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching data:', error);
+      });
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [selectedItem]); // Only call fetchData when selectedItem changes
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView();
@@ -66,23 +89,21 @@ export const Main = () => {
     setChatHistory([]);
     setChatStarted(false);
   };
+
   const startNewChat = () => {
-    setChatHistory([]); 
-    setChatStarted(false); 
+    setChatHistory([]);
+    setAires([]);
+    setChatStarted(false);
   };
 
   const startSpeechRecognition = () => {
-    if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
-      console.error('Speech Recognition API is not supported in this browser.');
-      return;
-    }
-  
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
     recognition.lang = "en-US";
     recognition.interimResults = true;
     recognition.maxAlternatives = 1;
-  
+
     recognition.onresult = (event) => {
       const transcript = event.results[event.results.length - 1][0].transcript
         .trim()
@@ -97,51 +118,21 @@ export const Main = () => {
         handleSend(transcript, true);
       }
     };
-  
+
     recognition.onspeechend = () => {
       recognition.stop();
       setIsListening(false);
     };
-  
+
     recognition.onerror = (event) => {
       console.error("Speech Recognition Error:", event.error);
-      switch (event.error) {
-        case 'no-speech':
-          console.error('No speech was detected. Please try again.');
-          break;
-        case 'audio-capture':
-          console.error('No microphone was found. Ensure that a microphone is installed and that microphone settings are configured correctly.');
-          break;
-        case 'not-allowed':
-          console.error('Permission to use the microphone is blocked. To change, go to chrome://settings/content/microphone and allow this site.');
-          break;
-        default:
-          console.error('An unknown error occurred.');
-          break;
-      }
     };
-  
-    recognition.onaudiostart = () => {
-      console.log('Audio capturing started.');
-    };
-  
-    recognition.onaudioend = () => {
-      console.log('Audio capturing ended.');
-    };
-  
-    recognition.onstart = () => {
-      console.log('Speech recognition service has started.');
-    };
-  
-    recognition.onend = () => {
-      console.log('Speech recognition service disconnected.');
-    };
-  
+
     recognition.start();
     speechRecognitionRef.current = recognition;
     setIsListening(true);
   };
-  
+
   const stopSpeaking = () => {
     window.speechSynthesis.cancel();
     if (speechRecognitionRef.current) {
@@ -161,7 +152,7 @@ export const Main = () => {
       LLM: LLM,
     };
 
-    fetch(`https://chatpro-algohype.replit.app/pro/add/`, {
+    fetch(`https://chatpro-algohype.replit.app/api/add/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -171,8 +162,6 @@ export const Main = () => {
       .then((response) => response.json())
       .then((data) => {
         beepAudioRef2.current.play();
-        // console.log("audio_content", data.audio_content);
-        // console.log("data", data);
         const answer = data.data[3];
         addToChat(answer, "answer");
 
@@ -192,7 +181,6 @@ export const Main = () => {
         console.error("Error with the send function:", error);
       });
   };
-
 
   const data = [
     {
@@ -216,7 +204,8 @@ export const Main = () => {
     <>
       <Sidebar startNewChat={startNewChat} />
       <div className="main-container">
-        {!chatStarted && (
+      <h1 className="user-name">Hello {userName}</h1>
+        {!chatStarted && aires.length === 0 && (
           <div className="inbuilt-prompt">
             {data.map((item, index) => (
               <div key={index} className="inbuilt-prompt-div">
@@ -239,23 +228,40 @@ export const Main = () => {
           </div>
         )}
 
-        <div className="chat-container">
-          {chatHistory.map((chat, index) => (
-            <div
-              key={index}
-              className={
-                chat.type === "question" ? "input-query" : "chat-response"
-              }
-              style={{
-                backgroundColor:
-                  chat.type === "question" ? "#424242" : "#242424",
-              }}
-            >
-              <p>{chat.text}</p>
-            </div>
-          ))}
-          <div ref={chatEndRef} />
-        </div>
+        {aires.length > 0 && (
+          <div className="chat-container">
+            {aires.map((aire, index) => (
+              <div key={index}>
+                <div className="input-query" style={{ backgroundColor: "#424242" }}>
+                  <p>{aire.val4}</p>
+                </div>
+                <div className="chat-response" style={{ backgroundColor: "#242424" }}>
+                  <p>{aire.val5}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {chatStarted && aires.length === 0 && (
+          <div className="chat-container">
+            {chatHistory.map((chat, index) => (
+              <div
+                key={index}
+                className={
+                  chat.type === "question" ? "input-query" : "chat-response"
+                }
+                style={{
+                  backgroundColor:
+                    chat.type === "question" ? "#424242" : "#242424",
+                }}
+              >
+                <p>{chat.text}</p>
+              </div>
+            ))}
+            <div ref={chatEndRef} />
+          </div>
+        )}
 
         <div className="input-wrapper">
           <input
@@ -308,7 +314,7 @@ export const Main = () => {
             />
           </div>
           <img
-            src="https://s3-alpha-sig.figma.com/img/9ad7/2d2d/649a3f001361586c198c4722816c0ea8?Expires=1716768000&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4&Signature=CSgrJrHgcDpH7rC9bzPTT3BpM8tbUY7~vw8td2TPZczjLwF7eJfGc-RUVNQwoFMUl0~t1j5oSUeGjgpQnDIwFQTjbP83chT~brqeHhoKdp4~KUFW6uByEQWL3o6xCiRWfz46bntXldaOCeynnUJd8g2q35ENAZLzND4RB~Q7bBTTMuqcqQZAXvcW2nr1G5O6msI4SBybWrf~L5J14gfo1rwNMDkTiFlkxSe8NMbe9HlDhIYSZg6VsdhLCLdBop6rGyxQ2uv~ruYjyJrSPCMz-O4CA-Y1SRp9mapcqnZ3GZBFhVg8sdl86OR6VlyaSkkV31ZUVjrqrtdW8NOCAU12KA__"
+            src="https://s3-alpha-sig.figma.com/img/9ad7/2d2d/649a3f001361586c198c4722816c0ea8?Expires=1718582400&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4&Signature=N0cvCWBEysZodVxR1eQDUU04z2RMQ6Nx66fcvFBg27H7VPH4FewULfxca~9UMCPCOwrGg6i3BYhHYrQ2FEV0jkXs8M~f66H7DgTfQXqbUzfCi8p33rCLlG~SZtHXtDIWcgax~nqACJdAoygGA0tqJryxEcNVVzLontMfaKRg2ENnsz4A64hSUQ-XcKD78~HViKRG5s54-cwDKQ1BvWhS3AOUSAxW0K7b-GkS~yFiHsq44thbqJhW~WXYIlZchMvaZn40fRBc4mJpAqS2cXn3VCMTZ7mq5913KZgO5OLxIg6uxNpxqjB0-s1A7qzodHllJ9KOmDiCSv3fcLPwtfIaIQ__"
             alt="Send"
             className="send-icon"
             onClick={handleSend}

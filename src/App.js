@@ -1,3 +1,6 @@
+
+import Demo from "./Components/GoogleAuth";
+import GoogleLoginComponent from "./Components/GoogleAuth";
 import { Main } from "./Components/Main";
 
 
@@ -5,7 +8,11 @@ import { Main } from "./Components/Main";
 const App = () => {
   return (
     <div>
-<Main/>
+{/* <Main/> */}
+
+
+{/* <Sidebar/> */}
+<Demo/>
   
     </div>
   )

@@ -3,9 +3,17 @@
     width: 15%;
 }
 
+.history-item {
+    color: aliceblue;
+    display: none; /* Hide history items by default */
+}
+
+.side-open .history-item {
+    display: block; /* Show history items when sidebar is open */
+}
+
 .side {
-    /* border: 2px solid red; */
-    width: 50px; 
+    width: 50px;
     transition: width 0.5s;
     background-color: #242424;
     position: absolute;
@@ -18,11 +26,11 @@
 }
 
 .side-open {
-    width: 200px; 
+    width: 200px;
 }
 
 .side-closed {
-    width: 50px; 
+    width: 50px;
 }
 
 .add_icon_div {
@@ -44,4 +52,32 @@
 .userimage, .setting_image {
     display: block;
     margin: 5px auto;
+}
+.mobile-sidebar-toggle{
+display: none;
+}
+
+/* Mobile view styles */
+@media (max-width: 768px) {
+    .side {
+        display: none; /* Hide sidebar by default */
+    }
+
+    .side-open {
+        display: block; /* Show sidebar when open */
+        z-index: 10;
+        transition: width 0.9s;
+    }
+
+    .mobile-sidebar-toggle {
+        display: block; /* Show toggle button */
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        z-index: 1000;
+        border: none;
+        background-color: transparent;
+        cursor: pointer;
+    }
+
 }
