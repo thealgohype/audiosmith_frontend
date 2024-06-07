@@ -8,11 +8,11 @@ import { Main } from "./Components/Main";
 const App = () => {
   return (
     <div>
-{/* <Main/> */}
+<Main/>
 
 
 {/* <Sidebar/> */}
-<Demo/>
+{/* <Demo/> */}
   
     </div>
   )
