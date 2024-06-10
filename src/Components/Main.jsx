@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useContext } from "react";
 import {
-  FaMicrophone,
+  FaRegStopCircle ,
   FaPaperPlane,
   FaTrash,
   FaStop,
@@ -16,6 +16,7 @@ import tool from "../heroimages/tool-01.svg";
 import microphone from "../heroimages/microphone-01.svg";
 import axios from 'axios';
 import { AppContext } from "./AppProvider";
+import { PiBroom } from "react-icons/pi";
 
 export const Main = () => {
   const [isListening, setIsListening] = useState(false);
@@ -211,7 +212,7 @@ export const Main = () => {
         "Create an adventure story Ai.",
     },
   ];
-
+  const isSendDisabled = inputText.trim() === '';
   const handlePresetSend = (description) => {
     handleSend(description);
   };
@@ -290,18 +291,21 @@ export const Main = () => {
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onKeyPress={(e) => {
-              if (e.key === "Enter") {
-                handleSend();
-              }
-            }}
+          if (e.key === 'Enter' && !isSendDisabled) {
+            handleSend();
+          }
+        }}
           />
           <div className="icons-container">
-            <img
+            {/* <img
               src={ellipse}
               alt="Settings"
               className="input-icon"
               onClick={clearChatHistory}
-            />
+            /> */}
+            <button className="input-icon" onClick={clearChatHistory}>
+            <PiBroom style={{color:"#E9CA91" , width:"20px",height:"20px"}}/>
+            </button>
             <div className="dropdown-container">
               <img
                 src={tool}
@@ -335,16 +339,19 @@ export const Main = () => {
             )}
             {showAnimation && (
               <button onClick={stopSpeaking} className="stop-button">
-                <FaStop />
+                <FaRegStopCircle style={{color:"#E9CA91", width:"20px",height:"20px"}}/>
               </button>
             )}
           </div>
           <img
-            src="https://s3-alpha-sig.figma.com/img/9ad7/2d2d/649a3f001361586c198c4722816c0ea8?Expires=1718582400&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4&Signature=N0cvCWBEysZodVxR1eQDUU04z2RMQ6Nx66fcvFBg27H7VPH4FewULfxca~9UMCPCOwrGg6i3BYhHYrQ2FEV0jkXs8M~f66H7DgTfQXqbUzfCi8p33rCLlG~SZtHXtDIWcgax~nqACJdAoygGA0tqJryxEcNVVzLontMfaKRg2ENnsz4A64hSUQ-XcKD78~HViKRG5s54-cwDKQ1BvWhS3AOUSAxW0K7b-GkS~yFiHsq44thbqJhW~WXYIlZchMvaZn40fRBc4mJpAqS2cXn3VCMTZ7mq5913KZgO5OLxIg6uxNpxqjB0-s1A7qzodHllJ9KOmDiCSv3fcLPwtfIaIQ__"
-            alt="Send"
-            className="send-icon"
-            onClick={handleSend}
-          />
+        src="https://s3-alpha-sig.figma.com/img/9ad7/2d2d/649a3f001361586c198c4722816c0ea8?Expires=1718582400&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4&Signature=N0cvCWBEysZodVxR1eQDUU04z2RMQ6Nx66fcvFBg27H7VPH4FewULfxca~9UMCPCOwrGg6i3BYhHYrQ2FEV0jkXs8M~f66H7DgTfQXqbUzfCi8p33rCLlG~SZtHXtDIWcgax~nqACJdAoygGA0tqJryxEcNVVzLontMfaKRg2ENnsz4A64hSUQ-XcKD78~HViKRG5s54-cwDKQ1BvWhS3AOUSAxW0K7b-GkS~yFiHsq44thbqJhW~WXYIlZchMvaZn40fRBc4mJpAqS2cXn3VCMTZ7mq5913KZgO5OLxIg6uxNpxqjB0-s1A7qzodHllJ9KOmDiCSv3fcLPwtfIaIQ__"
+        alt="Send"
+        className={`send-icon ${isSendDisabled ? 'disabled' : ''}`}
+        onClick={() => {
+          if (!isSendDisabled) handleSend(inputText);
+        }}
+        style={{ cursor: isSendDisabled ? 'not-allowed' : 'pointer', opacity: isSendDisabled ? 0.5 : 1 }}
+      />
         </div>
 
         {isListening && (
