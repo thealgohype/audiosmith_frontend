@@ -22,17 +22,17 @@ export const Main = () => {
   const [transcription, setTranscription] = useState("");
   const [chatHistory, setChatHistory] = useState([]);
   const [showAnimation, setShowAnimation] = useState(false);
-  const [LLM, setModel] = useState("google-gemini");
+  const [LLM, setModel] = useState("gpt-3.5-turbo");
   const [inputText, setInputText] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const beepAudioRef = useRef(
     new Audio(
-      "https://file.notion.so/f/f/d63da4d3-2abc-444e-8eab-6e3acc166743/1b0e0826-4588-4fd4-83ac-bcca2fbb6c28/clickti_-_3.mp3?id=87b35fc2-1d96-4eef-9b23-db2cc6e72fb1&table=block&spaceId=d63da4d3-2abc-444e-8eab-6e3acc166743&expirationTimestamp=1717581600000&signature=xvrbUgxrrcSvdMf0Sgy6GwOJLL5mojUz2VQ5IXCslCg"
+      "https://file.notion.so/f/f/d63da4d3-2abc-444e-8eab-6e3acc166743/1b0e0826-4588-4fd4-83ac-bcca2fbb6c28/clickti_-_3.mp3?id=87b35fc2-1d96-4eef-9b23-db2cc6e72fb1&table=block&spaceId=d63da4d3-2abc-444e-8eab-6e3acc166743&expirationTimestamp=1718092800000&signature=hJLogi_oVmu4djVRLawYXFg6vhk_xZcHGWrmjXK-9Gk"
     )
   );
   const beepAudioRef2 = useRef(
     new Audio(
-      "https://file.notion.so/f/f/d63da4d3-2abc-444e-8eab-6e3acc166743/1b0e0826-4588-4fd4-83ac-bcca2fbb6c28/clickti_-_3.mp3?id=87b35fc2-1d96-4eef-9b23-db2cc6e72fb1&table=block&spaceId=d63da4d3-2abc-444e-8eab-6e3acc166743&expirationTimestamp=1717581600000&signature=xvrbUgxrrcSvdMf0Sgy6GwOJLL5mojUz2VQ5IXCslCg"
+      "https://file.notion.so/f/f/d63da4d3-2abc-444e-8eab-6e3acc166743/1b0e0826-4588-4fd4-83ac-bcca2fbb6c28/clickti_-_3.mp3?id=87b35fc2-1d96-4eef-9b23-db2cc6e72fb1&table=block&spaceId=d63da4d3-2abc-444e-8eab-6e3acc166743&expirationTimestamp=1718092800000&signature=hJLogi_oVmu4djVRLawYXFg6vhk_xZcHGWrmjXK-9Gk"
     )
   );
   const speechRecognitionRef = useRef(null);
@@ -41,14 +41,18 @@ export const Main = () => {
   const [chatStarted, setChatStarted] = useState(false);
   const { selectedItem } = useContext(AppContext);
   const [aires, setAires] = useState([]);
-  const [userName,setUserName] = useState("Prashant")
-  // console.log("dataonmain", selectedItem);
+  const [userName, setUserName] = useState("You have to logged in first");
+  const [currentAudio, setCurrentAudio] = useState(null);
 
-
+  let localData = JSON.parse(localStorage.getItem("user_info")) || { name: "" }
+  console.log("localData",localData)
+  // setUserName(localData.name)
+  
   const fetchData = () => {
-    axios.get("https://chatpro-algohype.replit.app/api/get/")
-      .then(response => {
-        let obj = response.data.grouped_data;
+    axios
+    .get("https://chatpro-algohype.replit.app/api/get/")
+    .then((response) => {
+      let obj = response.data.grouped_data;
         for (let k in obj) {
           if (selectedItem === k) {
             console.log("data in main", obj[k]);
@@ -56,14 +60,15 @@ export const Main = () => {
           }
         }
       })
-      .catch(error => {
-        console.error('Error fetching data:', error);
+      .catch((error) => {
+        console.error("Error fetching data:", error);
       });
   };
 
   useEffect(() => {
     fetchData();
-  }, [selectedItem]); // Only call fetchData when selectedItem changes
+    setUserName(localData.name)
+  }, [selectedItem]); 
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView();
@@ -139,6 +144,10 @@ export const Main = () => {
       speechRecognitionRef.current.stop();
       speechRecognitionRef.current = null;
     }
+    if (currentAudio) {
+      currentAudio.pause();
+      setCurrentAudio(null); // Reset the current audio state
+    }
     setIsListening(false);
     setShowAnimation(false);
   };
@@ -150,6 +159,7 @@ export const Main = () => {
     const payload = {
       text: text,
       LLM: LLM,
+      userEmail : localData.hd || ""
     };
 
     fetch(`https://chatpro-algohype.replit.app/api/add/`, {
@@ -168,11 +178,13 @@ export const Main = () => {
         if (isSpeech) {
           const audioSrc = `data:audio/wav;base64,${data.audio_content}`;
           const audio = new Audio(audioSrc);
+          setCurrentAudio(audio); // Set the current audio object to state
           audio.play();
 
           setShowAnimation(true);
           audio.onended = () => {
             setShowAnimation(false);
+            setCurrentAudio(null); // Reset the current audio state
             startSpeechRecognition();
           };
         }
@@ -196,15 +208,19 @@ export const Main = () => {
     {
       title: "Adventure",
       description:
-        "Create an adventure story based on your input. Create an adventure story based on your input.",
+        "Create an adventure story Ai.",
     },
   ];
+
+  const handlePresetSend = (description) => {
+    handleSend(description);
+  };
 
   return (
     <>
       <Sidebar startNewChat={startNewChat} />
       <div className="main-container">
-      <h1 className="user-name">Hello {userName}</h1>
+        <h1 className="user-name">Hello {userName}</h1>
         {!chatStarted && aires.length === 0 && (
           <div className="inbuilt-prompt">
             {data.map((item, index) => (
@@ -218,11 +234,14 @@ export const Main = () => {
                 </div>
                 <p className="book-story">{item.title}</p>
                 <p className="book-story-para">{item.description}</p>
+                <button>
                 <img
                   className="arrowcirclebrokenright"
                   src={arrowcirclebrokenright}
                   alt="arrowcirclebrokenright_image"
+                  onClick={() => handlePresetSend(item.description)}
                 />
+                </button>
               </div>
             ))}
           </div>
@@ -232,10 +251,10 @@ export const Main = () => {
           <div className="chat-container">
             {aires.map((aire, index) => (
               <div key={index}>
-                <div className="input-query" style={{ backgroundColor: "#424242" }}>
+                <div className="input-query" style={{ display: "flex", backgroundColor: "#424242", justifyContent:"flex-end", width:"70%"}}>
                   <p>{aire.val4}</p>
                 </div>
-                <div className="chat-response" style={{ backgroundColor: "#242424" }}>
+                <div className="chat-response" style={{ backgroundColor: "#242424"  }}>
                   <p>{aire.val5}</p>
                 </div>
               </div>
@@ -306,12 +325,19 @@ export const Main = () => {
                 </div>
               )}
             </div>
-            <img
-              src={microphone}
-              alt="Microphone"
-              className="input-icon"
-              onClick={startSpeechRecognition}
-            />
+            {!showAnimation && (
+              <img
+                src={microphone}
+                alt="Microphone"
+                className="input-icon"
+                onClick={startSpeechRecognition}
+              />
+            )}
+            {showAnimation && (
+              <button onClick={stopSpeaking} className="stop-button">
+                <FaStop />
+              </button>
+            )}
           </div>
           <img
             src="https://s3-alpha-sig.figma.com/img/9ad7/2d2d/649a3f001361586c198c4722816c0ea8?Expires=1718582400&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4&Signature=N0cvCWBEysZodVxR1eQDUU04z2RMQ6Nx66fcvFBg27H7VPH4FewULfxca~9UMCPCOwrGg6i3BYhHYrQ2FEV0jkXs8M~f66H7DgTfQXqbUzfCi8p33rCLlG~SZtHXtDIWcgax~nqACJdAoygGA0tqJryxEcNVVzLontMfaKRg2ENnsz4A64hSUQ-XcKD78~HViKRG5s54-cwDKQ1BvWhS3AOUSAxW0K7b-GkS~yFiHsq44thbqJhW~WXYIlZchMvaZn40fRBc4mJpAqS2cXn3VCMTZ7mq5913KZgO5OLxIg6uxNpxqjB0-s1A7qzodHllJ9KOmDiCSv3fcLPwtfIaIQ__"

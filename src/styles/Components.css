@@ -508,7 +508,7 @@ height: 21.064px;
     margin-left: auto;
     margin-right: 20px;
 } */
-
+ 
 
 
 .main-container {
@@ -831,6 +831,7 @@ height: 21.064px;
       opacity: 1;
     }
   }
+
 /* Speaking Animation */
 .speaking-animation {
     position: fixed;
@@ -891,6 +892,7 @@ height: 21.064px;
 
 /* Mobile view styles */
 @media (max-width: 768px) {
+  
     .main-container {
       flex-direction: column;
       width: 100%;
@@ -955,32 +957,37 @@ height: 21.064px;
       position: relative;
       right: 0;
       bottom: 0;
-      margin-left: 10px; /* Adjust the margin as needed */
-    }
-  
-    .send-icon {
-      width: 35px;
-      position: relative;
-      left: auto;
-      top: 0;
-      cursor: pointer;
-    }
+      margin-left: 10px;
+      }
+      
+      .send-icon {
+          width: 35px;
+          position: relative;
+          left: auto;
+          top: 0;
+          cursor: pointer;
+          }
   
     .chat-container {
       width: 95%;
       height: 86vh;
       /* border: 2px solid red; */
       padding: 5px;
-    }
-  
-    .input-query,
-    .chat-response {
-      width: 90%;
-      margin-left: 5%;
-    }
-
+      }
+      
+      .input-query,
+      .chat-response {
+          width: 90%;
+          margin-left: 5%;
+    
+          }
+          
     .dropdown select option {
         background-color: #242424;
         /* border: 2px solid red; */
-    }
-}
+        }
+        }
+
+
+
+
