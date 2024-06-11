@@ -18,9 +18,12 @@ export const Sidebar = (props) => {
     const toggleSidebar = () => {
         setIsSidebarOpen(!isSidebarOpen);
     };
-
+    let localData = JSON.parse(localStorage.getItem("user_info")) || { name: "" }
     const fetchData = () => {
-        axios.get("https://chatpro-algohype.replit.app/api/get/")
+        const postData = {
+            userEmail : localData.hd || ""
+          }
+        axios.post("https://chatpro-algohype.replit.app/api/get/",postData)
             .then(response => {
                 let arr = [];
                 for (let key in response.data.grouped_data) {
@@ -34,7 +37,7 @@ export const Sidebar = (props) => {
     };
 
     const handleHistoryClick = (item) => {
-        console.log(item);
+        // console.log(item);
         setSelectedItem(item);
     };
 

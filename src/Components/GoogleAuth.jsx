@@ -32,7 +32,7 @@ const extractUserInfo = () => {
   if (userInfo) {
     try {
       const parsedUserInfo = JSON.parse(userInfo);
-      console.log('User Info:', parsedUserInfo);
+      // console.log('User Info:', parsedUserInfo);
       // Store the user info as needed, e.g., in localStorage or state
       localStorage.setItem('user_info', JSON.stringify(parsedUserInfo));
       // Remove the query parameters from the URL

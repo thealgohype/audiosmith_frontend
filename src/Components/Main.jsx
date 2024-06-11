@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useContext } from "react";
 import {
-  FaRegStopCircle ,
+  FaRegStopCircle,
   FaPaperPlane,
   FaTrash,
   FaStop,
@@ -28,12 +28,12 @@ export const Main = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const beepAudioRef = useRef(
     new Audio(
-      "https://file.notion.so/f/f/d63da4d3-2abc-444e-8eab-6e3acc166743/1b0e0826-4588-4fd4-83ac-bcca2fbb6c28/clickti_-_3.mp3?id=87b35fc2-1d96-4eef-9b23-db2cc6e72fb1&table=block&spaceId=d63da4d3-2abc-444e-8eab-6e3acc166743&expirationTimestamp=1718092800000&signature=hJLogi_oVmu4djVRLawYXFg6vhk_xZcHGWrmjXK-9Gk"
+      "https://file.notion.so/f/f/d63da4d3-2abc-444e-8eab-6e3acc166743/1b0e0826-4588-4fd4-83ac-bcca2fbb6c28/clickti_-_3.mp3?id=87b35fc2-1d96-4eef-9b23-db2cc6e72fb1&table=block&spaceId=d63da4d3-2abc-444e-8eab-6e3acc166743&expirationTimestamp=1718193600000&signature=45Zz7pKU1cElOlgVrRpiuH4qwPtfEYUW9xRV4mSzMvI"
     )
   );
   const beepAudioRef2 = useRef(
     new Audio(
-      "https://file.notion.so/f/f/d63da4d3-2abc-444e-8eab-6e3acc166743/1b0e0826-4588-4fd4-83ac-bcca2fbb6c28/clickti_-_3.mp3?id=87b35fc2-1d96-4eef-9b23-db2cc6e72fb1&table=block&spaceId=d63da4d3-2abc-444e-8eab-6e3acc166743&expirationTimestamp=1718092800000&signature=hJLogi_oVmu4djVRLawYXFg6vhk_xZcHGWrmjXK-9Gk"
+      "https://file.notion.so/f/f/d63da4d3-2abc-444e-8eab-6e3acc166743/1b0e0826-4588-4fd4-83ac-bcca2fbb6c28/clickti_-_3.mp3?id=87b35fc2-1d96-4eef-9b23-db2cc6e72fb1&table=block&spaceId=d63da4d3-2abc-444e-8eab-6e3acc166743&expirationTimestamp=1718193600000&signature=45Zz7pKU1cElOlgVrRpiuH4qwPtfEYUW9xRV4mSzMvI"
     )
   );
   const speechRecognitionRef = useRef(null);
@@ -44,10 +44,10 @@ export const Main = () => {
   const [aires, setAires] = useState([]);
   const [userName, setUserName] = useState("You have to logged in first");
   const [currentAudio, setCurrentAudio] = useState(null);
+  const [useWebSpeechAPI, setUseWebSpeechAPI] = useState(false);
 
   let localData = JSON.parse(localStorage.getItem("user_info")) || { name: "" }
-  console.log("localData",localData)
-  // setUserName(localData.name)
+  // console.log("localData",localData)
   
   const fetchData = () => {
     axios
@@ -56,7 +56,7 @@ export const Main = () => {
       let obj = response.data.grouped_data;
         for (let k in obj) {
           if (selectedItem === k) {
-            console.log("data in main", obj[k]);
+            // console.log("data in main", obj[k]);
             setAires(obj[k]);
           }
         }
@@ -74,6 +74,15 @@ export const Main = () => {
   useEffect(() => {
     chatEndRef.current?.scrollIntoView();
   }, [chatHistory]);
+
+  useEffect(() => {
+    // Check if the browser supports the Web Speech API
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      setUseWebSpeechAPI(true);
+    }
+  }, []);
 
   const playBeep = () => {
     beepAudioRef.current.play();
@@ -103,40 +112,48 @@ export const Main = () => {
   };
 
   const startSpeechRecognition = () => {
-    const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
-    recognition.lang = "en-US";
-    recognition.interimResults = true;
-    recognition.maxAlternatives = 1;
+    if (useWebSpeechAPI) {
+      // Use Web Speech API
+      const SpeechRecognition =
+        window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      recognition.lang = "en-US";
+      recognition.interimResults = true;
+      recognition.maxAlternatives = 1;
 
-    recognition.onresult = (event) => {
-      const transcript = event.results[event.results.length - 1][0].transcript
-        .trim()
-        .toLowerCase();
-      if (transcript.includes("stop")) {
-        stopSpeaking();
-        return;
-      }
-      if (event.results[event.results.length - 1].isFinal) {
-        playBeep();
-        setTranscription(transcript);
-        handleSend(transcript, true);
-      }
-    };
+      recognition.onresult = (event) => {
+        const transcript = event.results[event.results.length - 1][0].transcript
+          .trim()
+          .toLowerCase();
+        if (transcript.includes("stop")) {
+          stopSpeaking();
+          return;
+        }
+        if (event.results[event.results.length - 1].isFinal) {
+          playBeep();
+          setTranscription(transcript);
+          handleSend(transcript, true);
+        }
+      };
 
-    recognition.onspeechend = () => {
-      recognition.stop();
-      setIsListening(false);
-    };
+      recognition.onspeechend = () => {
+        recognition.stop();
+        setIsListening(false);
+      };
 
-    recognition.onerror = (event) => {
-      console.error("Speech Recognition Error:", event.error);
-    };
+      recognition.onerror = (event) => {
+        console.error("Speech Recognition Error:", event.error);
+        // Fallback to LemonFox API
+        handleLemonFoxSpeechRecognition();
+      };
 
-    recognition.start();
-    speechRecognitionRef.current = recognition;
-    setIsListening(true);
+      recognition.start();
+      speechRecognitionRef.current = recognition;
+      setIsListening(true);
+    } else {
+      // Use LemonFox API
+      handleLemonFoxSpeechRecognition();
+    }
   };
 
   const stopSpeaking = () => {
@@ -147,7 +164,7 @@ export const Main = () => {
     }
     if (currentAudio) {
       currentAudio.pause();
-      setCurrentAudio(null); // Reset the current audio state
+      setCurrentAudio(null);
     }
     setIsListening(false);
     setShowAnimation(false);
@@ -193,6 +210,87 @@ export const Main = () => {
       .catch((error) => {
         console.error("Error with the send function:", error);
       });
+  };
+
+  const textToSpeech = (text) => {
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      window.speechSynthesis.speak(utterance);
+    } else {
+      const body = new FormData();
+      body.append('file', new Blob([text], { type: 'text/plain' }));
+      body.append('language', 'english');
+      body.append('response_format', 'json');
+
+      fetch('https://api.lemonfox.ai/v1/audio/transcriptions', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer YOUR_API_KEY'
+        },
+        body: body
+      })
+      .then(response => response.json())
+      .then(data => {
+        const audioSrc = `data:audio/wav;base64,${data.audio_content}`;
+        const audio = new Audio(audioSrc);
+        setCurrentAudio(audio);
+        audio.play();
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+    }
+  };
+
+  const handleLemonFoxSpeechRecognition = () => {
+    // Implement the LemonFox API call here
+    console.log("lemonfox called 😍")
+    const startRecording = () => {
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+          const mediaRecorder = new MediaRecorder(stream);
+          let chunks = [];
+
+          mediaRecorder.ondataavailable = event => {
+            chunks.push(event.data);
+          };
+
+          mediaRecorder.onstop = () => {
+            const blob = new Blob(chunks, { 'type': 'audio/wav' });
+            const body = new FormData();
+            body.append('file', blob);
+            body.append('language', 'english');
+            body.append('response_format', 'json');
+
+            fetch('https://api.lemonfox.ai/v1/audio/transcriptions', {
+              method: 'POST',
+              headers: {
+                'Authorization': 'Bearer neFzSFnBDP21zUxsTWw6pxnfOwslUQV5'
+              },
+              body: body
+            })
+            .then(response => response.json())
+            .then(data => {
+              // console.log(data['text']);
+              setTranscription(data['text']);
+              handleSend(data['text'], true);
+            })
+            .catch(error => {
+              console.error('Error:', error);
+            });
+          };
+
+          mediaRecorder.start();
+          setTimeout(() => {
+            mediaRecorder.stop();
+          }, 5000); // Adjust the recording duration as needed
+        })
+        .catch(error => {
+          console.error('Error accessing microphone:', error);
+        });
+    };
+
+    startRecording();
   };
 
   const data = [
@@ -297,12 +395,6 @@ export const Main = () => {
         }}
           />
           <div className="icons-container">
-            {/* <img
-              src={ellipse}
-              alt="Settings"
-              className="input-icon"
-              onClick={clearChatHistory}
-            /> */}
             <button className="input-icon" onClick={clearChatHistory}>
             <PiBroom style={{color:"#E9CA91" , width:"20px",height:"20px"}}/>
             </button>
