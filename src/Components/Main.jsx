@@ -45,18 +45,20 @@ export const Main = () => {
   const [userName, setUserName] = useState("You have to logged in first");
   const [currentAudio, setCurrentAudio] = useState(null);
   const [useWebSpeechAPI, setUseWebSpeechAPI] = useState(false);
+  const mediaRecorderRef = useRef(null);
 
   let localData = JSON.parse(localStorage.getItem("user_info")) || { name: "" }
-  // console.log("localData",localData)
-  
+
   const fetchData = () => {
+    const postData = {
+      userEmail : localData.hd || ""
+    }
     axios
-    .get("https://chatpro-algohype.replit.app/api/get/")
+    .post(`${process.env.chatproBackedGet}`,postData)
     .then((response) => {
       let obj = response.data.grouped_data;
         for (let k in obj) {
           if (selectedItem === k) {
-            // console.log("data in main", obj[k]);
             setAires(obj[k]);
           }
         }
@@ -162,6 +164,10 @@ export const Main = () => {
       speechRecognitionRef.current.stop();
       speechRecognitionRef.current = null;
     }
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.stop();
+      mediaRecorderRef.current = null;
+    }
     if (currentAudio) {
       currentAudio.pause();
       setCurrentAudio(null);
@@ -180,7 +186,7 @@ export const Main = () => {
       userEmail : localData.hd || ""
     };
 
-    fetch(`https://chatpro-algohype.replit.app/api/add/`, {
+    fetch(`${process.env.chatproBackendAdd}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -196,13 +202,13 @@ export const Main = () => {
         if (isSpeech) {
           const audioSrc = `data:audio/wav;base64,${data.audio_content}`;
           const audio = new Audio(audioSrc);
-          setCurrentAudio(audio); // Set the current audio object to state
+          setCurrentAudio(audio);
           audio.play();
 
           setShowAnimation(true);
           audio.onended = () => {
             setShowAnimation(false);
-            setCurrentAudio(null); // Reset the current audio state
+            setCurrentAudio(null);
             startSpeechRecognition();
           };
         }
@@ -212,43 +218,13 @@ export const Main = () => {
       });
   };
 
-  const textToSpeech = (text) => {
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      window.speechSynthesis.speak(utterance);
-    } else {
-      const body = new FormData();
-      body.append('file', new Blob([text], { type: 'text/plain' }));
-      body.append('language', 'english');
-      body.append('response_format', 'json');
-
-      fetch('https://api.lemonfox.ai/v1/audio/transcriptions', {
-        method: 'POST',
-        headers: {
-          'Authorization': 'Bearer YOUR_API_KEY'
-        },
-        body: body
-      })
-      .then(response => response.json())
-      .then(data => {
-        const audioSrc = `data:audio/wav;base64,${data.audio_content}`;
-        const audio = new Audio(audioSrc);
-        setCurrentAudio(audio);
-        audio.play();
-      })
-      .catch(error => {
-        console.error('Error:', error);
-      });
-    }
-  };
 
   const handleLemonFoxSpeechRecognition = () => {
-    // Implement the LemonFox API call here
-    console.log("lemonfox called 😍")
     const startRecording = () => {
       navigator.mediaDevices.getUserMedia({ audio: true })
         .then(stream => {
           const mediaRecorder = new MediaRecorder(stream);
+          mediaRecorderRef.current = mediaRecorder;
           let chunks = [];
 
           mediaRecorder.ondataavailable = event => {
@@ -265,15 +241,19 @@ export const Main = () => {
             fetch('https://api.lemonfox.ai/v1/audio/transcriptions', {
               method: 'POST',
               headers: {
-                'Authorization': 'Bearer neFzSFnBDP21zUxsTWw6pxnfOwslUQV5'
+                'Authorization': `Bearer ${process.env.AuthTokenlemonfox}` 
               },
               body: body
             })
             .then(response => response.json())
             .then(data => {
-              // console.log(data['text']);
-              setTranscription(data['text']);
-              handleSend(data['text'], true);
+              const text = data['text'];
+              if (text.toLowerCase().includes("stop")) {
+                stopSpeaking();
+                return;
+              }
+              setTranscription(text);
+              handleSend(text, true);
             })
             .catch(error => {
               console.error('Error:', error);
@@ -281,9 +261,7 @@ export const Main = () => {
           };
 
           mediaRecorder.start();
-          setTimeout(() => {
-            mediaRecorder.stop();
-          }, 5000); // Adjust the recording duration as needed
+          setIsListening(true);
         })
         .catch(error => {
           console.error('Error accessing microphone:', error);

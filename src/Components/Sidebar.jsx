@@ -8,7 +8,7 @@ import axios from 'axios';
 import GoogleAuth from './GoogleAuth';
 import onGoogleLoginSuccess from './GoogleAuth';
 import { AppContext } from './AppProvider';
-
+    
 
 export const Sidebar = (props) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -23,7 +23,7 @@ export const Sidebar = (props) => {
         const postData = {
             userEmail : localData.hd || ""
           }
-        axios.post("https://chatpro-algohype.replit.app/api/get/",postData)
+        axios.post(`${process.env.chatproBackedGet}`,postData)
             .then(response => {
                 let arr = [];
                 for (let key in response.data.grouped_data) {

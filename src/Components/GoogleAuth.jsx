@@ -12,7 +12,7 @@ const onGoogleLoginSuccess = () => {
   ].join(' ');
   const params = {
     response_type: 'code',
-    client_id: "280359628305-kuaek7lcfr8osemo4mv799bbuaeefl39.apps.googleusercontent.com",
+    client_id: `${process.env.clientID}`,
     redirect_uri: `${apiBaseURL}/${redirectUri}`,
     prompt: 'select_account',
     access_type: 'offline',
