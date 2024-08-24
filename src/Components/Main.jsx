@@ -1,22 +1,20 @@
-import React, { useState, useRef, useEffect, useContext } from "react";
-import {
-  FaRegStopCircle,
-  FaPaperPlane,
-  FaTrash,
-  FaStop,
-  FaTimes,
-  FaBars,
-} from "react-icons/fa";
+import React, { useState, useRef, useEffect, useContext, useCallback } from "react";
+import { FaRegStopCircle } from "react-icons/fa";
 import "../styles/Components.css";
 import { Sidebar } from "./Sidebar";
 import openbook from "../heroimages/openbook.svg";
 import arrowcirclebrokenright from "../heroimages/arrow-circle-broken-right.svg";
-import ellipse from "../heroimages/Ellipse 93.svg";
 import tool from "../heroimages/tool-01.svg";
 import microphone from "../heroimages/microphone-01.svg";
-import axios from 'axios';
 import { AppContext } from "./AppProvider";
 import { PiBroom } from "react-icons/pi";
+import { data } from "../utilis/data";
+import { handlePresetSend, isSendDisabled } from "../utilis/handleLemonfoxSpeech";
+import { createStartSpeechRecognition } from "../utilis/startSpeechrecogination";
+import { createStopSpeaking } from "../utilis/stopSpeaking";
+import { createHandleSend } from "../utilis/handleSend";
+import { createFetchData } from "../utilis/fetchDataa";
+import { RagResponse } from "./RagResponse";
 
 export const Main = () => {
   const [isListening, setIsListening] = useState(false);
@@ -26,59 +24,44 @@ export const Main = () => {
   const [LLM, setModel] = useState("gpt-3.5-turbo");
   const [inputText, setInputText] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
-  const beepAudioRef = useRef(
-    new Audio(
-      "https://file.notion.so/f/f/d63da4d3-2abc-444e-8eab-6e3acc166743/1b0e0826-4588-4fd4-83ac-bcca2fbb6c28/clickti_-_3.mp3?id=87b35fc2-1d96-4eef-9b23-db2cc6e72fb1&table=block&spaceId=d63da4d3-2abc-444e-8eab-6e3acc166743&expirationTimestamp=1718193600000&signature=45Zz7pKU1cElOlgVrRpiuH4qwPtfEYUW9xRV4mSzMvI"
-    )
-  );
-  const beepAudioRef2 = useRef(
-    new Audio(
-      "https://file.notion.so/f/f/d63da4d3-2abc-444e-8eab-6e3acc166743/1b0e0826-4588-4fd4-83ac-bcca2fbb6c28/clickti_-_3.mp3?id=87b35fc2-1d96-4eef-9b23-db2cc6e72fb1&table=block&spaceId=d63da4d3-2abc-444e-8eab-6e3acc166743&expirationTimestamp=1718193600000&signature=45Zz7pKU1cElOlgVrRpiuH4qwPtfEYUW9xRV4mSzMvI"
-    )
-  );
-  const speechRecognitionRef = useRef(null);
-  const chatEndRef = useRef(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [chatStarted, setChatStarted] = useState(false);
-  const { selectedItem } = useContext(AppContext);
-  const [aires, setAires] = useState([]);
   const [userName, setUserName] = useState("You have to logged in first");
   const [currentAudio, setCurrentAudio] = useState(null);
   const [useWebSpeechAPI, setUseWebSpeechAPI] = useState(false);
+  const [handleSend, setHandleSend] = useState(() => () => {});
+  const [startSpeechRecognition, setStartSpeechRecognition] = useState(() => () => {});
+  const [stopSpeaking, setStopSpeaking] = useState(() => () => {}); 
+  const { useAlternativeUI } = useContext(AppContext);
+
+  const beepAudioRef = useRef(new Audio(`${process.env.REACT_APP_AUDIO_URL}`));
+  const beepAudioRef2 = useRef(new Audio(`${process.env.REACT_APP_AUDIO_URL}`));
+  const speechRecognitionRef = useRef(null);
+  const chatEndRef = useRef(null);
   const mediaRecorderRef = useRef(null);
 
-  let localData = JSON.parse(localStorage.getItem("user_info")) || { name: "" }
+  const [localData, setLocalData] = useState({ name: "" });
+  const { selectedItem } = useContext(AppContext);
+  const [aires, setAires] = useState([]);
 
-  const fetchData = () => {
-    const postData = {
-      userEmail : localData.hd || ""
-    }
-    axios
-    .post(`${process.env.chatproBackedGet}`,postData)
-    .then((response) => {
-      let obj = response.data.grouped_data;
-        for (let k in obj) {
-          if (selectedItem === k) {
-            setAires(obj[k]);
-          }
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-      });
-  };
+  // console.log("process.env.AUDIO_URL",process.env.REACT_APP_AUDIO_URL)
+
 
   useEffect(() => {
+    const storedData = JSON.parse(localStorage.getItem("user_info")) || { name: "" };
+    setLocalData(storedData);
+  }, []);
+  const fetchData = useCallback(createFetchData(localData, selectedItem, setAires), [localData, selectedItem, setAires]);
+  
+  useEffect(() => {
     fetchData();
-    setUserName(localData.name)
-  }, [selectedItem]); 
+    setUserName(localData.name);
+  }, [fetchData, localData.name]); 
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView();
   }, [chatHistory]);
 
   useEffect(() => {
-    // Check if the browser supports the Web Speech API
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
@@ -86,21 +69,6 @@ export const Main = () => {
     }
   }, []);
 
-  const playBeep = () => {
-    beepAudioRef.current.play();
-  };
-
-  const addToChat = (message, type) => {
-    if (
-      type === "question" &&
-      chatHistory.length > 0 &&
-      chatHistory[chatHistory.length - 1].text === message
-    ) {
-      return;
-    }
-    setChatHistory((chatHistory) => [...chatHistory, { text: message, type }]);
-    if (!chatStarted) setChatStarted(true);
-  };
 
   const clearChatHistory = () => {
     setChatHistory([]);
@@ -113,191 +81,88 @@ export const Main = () => {
     setChatStarted(false);
   };
 
-  const startSpeechRecognition = () => {
-    if (useWebSpeechAPI) {
-      // Use Web Speech API
-      const SpeechRecognition =
-        window.SpeechRecognition || window.webkitSpeechRecognition;
-      const recognition = new SpeechRecognition();
-      recognition.lang = "en-US";
-      recognition.interimResults = true;
-      recognition.maxAlternatives = 1;
 
-      recognition.onresult = (event) => {
-        const transcript = event.results[event.results.length - 1][0].transcript
-          .trim()
-          .toLowerCase();
-        if (transcript.includes("stop")) {
-          stopSpeaking();
-          return;
-        }
-        if (event.results[event.results.length - 1].isFinal) {
-          playBeep();
-          setTranscription(transcript);
-          handleSend(transcript, true);
-        }
-      };
+  const playBeep = useCallback(() => {
+    beepAudioRef.current.play();
+  }, []);
 
-      recognition.onspeechend = () => {
-        recognition.stop();
-        setIsListening(false);
-      };
+  const addToChat = useCallback((message, type) => {
+    if (
+      type === "question" &&
+      chatHistory.length > 0 &&
+      chatHistory[chatHistory.length - 1].text === message
+    ) {
+      return;
+    }
+    setChatHistory((prevHistory) => [...prevHistory, { text: message, type }]);
+    if (!chatStarted) setChatStarted(true);
+  }, [chatHistory, chatStarted, setChatStarted]);
 
-      recognition.onerror = (event) => {
-        console.error("Speech Recognition Error:", event.error);
-        // Fallback to LemonFox API
-        handleLemonFoxSpeechRecognition();
-      };
+  useEffect(() => {
+    const stopSpeakingFunc = createStopSpeaking(
+      speechRecognitionRef,
+      mediaRecorderRef,
+      currentAudio,
+      setCurrentAudio,
+      setIsListening,
+      setShowAnimation
+    );
 
-      recognition.start();
-      speechRecognitionRef.current = recognition;
-      setIsListening(true);
-    } else {
-      // Use LemonFox API
-      handleLemonFoxSpeechRecognition();
+    const startSpeechRecognitionFunc = createStartSpeechRecognition(
+      useWebSpeechAPI,
+      stopSpeakingFunc,
+      playBeep,
+      setTranscription,
+      handleSend,
+      setIsListening,
+      mediaRecorderRef,
+      speechRecognitionRef,
+      inputText
+    );
+
+    const handleSendFunc = createHandleSend(
+      playBeep,
+      addToChat,
+      setInputText,
+      LLM,
+      localData,
+      beepAudioRef2,
+      setCurrentAudio,
+      setShowAnimation,
+      startSpeechRecognitionFunc,
+      setIsListening,
+      speechRecognitionRef
+    );
+
+    setStartSpeechRecognition(() => startSpeechRecognitionFunc);
+    setHandleSend(() => handleSendFunc);
+    setStopSpeaking(() => stopSpeakingFunc);
+  }, [useWebSpeechAPI, playBeep, setTranscription, setIsListening, inputText, LLM, localData, addToChat, currentAudio]);
+
+  const handleInputKeyPress = (e) => {
+    if (e.key === 'Enter' && !isSendDisabled(inputText)) {
+      handleSend(inputText);
     }
   };
 
-  const stopSpeaking = () => {
-    window.speechSynthesis.cancel();
-    if (speechRecognitionRef.current) {
-      speechRecognitionRef.current.stop();
-      speechRecognitionRef.current = null;
+  const handleSendButtonClick = () => {
+    if (!isSendDisabled(inputText)) {
+      handleSend(inputText);
     }
-    if (mediaRecorderRef.current) {
-      mediaRecorderRef.current.stop();
-      mediaRecorderRef.current = null;
-    }
-    if (currentAudio) {
-      currentAudio.pause();
-      setCurrentAudio(null);
-    }
-    setIsListening(false);
-    setShowAnimation(false);
   };
 
-  const handleSend = (text = inputText, isSpeech = false) => {
-    playBeep();
-    addToChat(text, "question");
-    setInputText("");
-    const payload = {
-      text: text,
-      LLM: LLM,
-      userEmail : localData.hd || ""
-    };
+ 
 
-    fetch(`${process.env.chatproBackendAdd}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        beepAudioRef2.current.play();
-        const answer = data.data[3];
-        addToChat(answer, "answer");
-
-        if (isSpeech) {
-          const audioSrc = `data:audio/wav;base64,${data.audio_content}`;
-          const audio = new Audio(audioSrc);
-          setCurrentAudio(audio);
-          audio.play();
-
-          setShowAnimation(true);
-          audio.onended = () => {
-            setShowAnimation(false);
-            setCurrentAudio(null);
-            startSpeechRecognition();
-          };
-        }
-      })
-      .catch((error) => {
-        console.error("Error with the send function:", error);
-      });
-  };
-
-
-  const handleLemonFoxSpeechRecognition = () => {
-    const startRecording = () => {
-      navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(stream => {
-          const mediaRecorder = new MediaRecorder(stream);
-          mediaRecorderRef.current = mediaRecorder;
-          let chunks = [];
-
-          mediaRecorder.ondataavailable = event => {
-            chunks.push(event.data);
-          };
-
-          mediaRecorder.onstop = () => {
-            const blob = new Blob(chunks, { 'type': 'audio/wav' });
-            const body = new FormData();
-            body.append('file', blob);
-            body.append('language', 'english');
-            body.append('response_format', 'json');
-
-            fetch('https://api.lemonfox.ai/v1/audio/transcriptions', {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${process.env.AuthTokenlemonfox}` 
-              },
-              body: body
-            })
-            .then(response => response.json())
-            .then(data => {
-              const text = data['text'];
-              if (text.toLowerCase().includes("stop")) {
-                stopSpeaking();
-                return;
-              }
-              setTranscription(text);
-              handleSend(text, true);
-            })
-            .catch(error => {
-              console.error('Error:', error);
-            });
-          };
-
-          mediaRecorder.start();
-          setIsListening(true);
-        })
-        .catch(error => {
-          console.error('Error accessing microphone:', error);
-        });
-    };
-
-    startRecording();
-  };
-
-  const data = [
-    {
-      title: "Story",
-      description:
-        "Generate a story from the given prompt. Generate a story from the given prompt.Generate a story from the given prompt.",
-    },
-    {
-      title: "Adventure",
-      description:
-        "Create an adventure story based on your input. Create an adventure story based on your input.",
-    },
-    {
-      title: "Adventure",
-      description:
-        "Create an adventure story Ai.",
-    },
-  ];
-  const isSendDisabled = inputText.trim() === '';
-  const handlePresetSend = (description) => {
-    handleSend(description);
-  };
+  if (useAlternativeUI) {
+    return <RagResponse />;
+  }
 
   return (
     <>
       <Sidebar startNewChat={startNewChat} />
       <div className="main-container">
         <h1 className="user-name">Hello {userName}</h1>
+       
         {!chatStarted && aires.length === 0 && (
           <div className="inbuilt-prompt">
             {data.map((item, index) => (
@@ -316,7 +181,7 @@ export const Main = () => {
                   className="arrowcirclebrokenright"
                   src={arrowcirclebrokenright}
                   alt="arrowcirclebrokenright_image"
-                  onClick={() => handlePresetSend(item.description)}
+                  onClick={() => handlePresetSend(item.description,handleSend)}
                 />
                 </button>
               </div>
@@ -366,11 +231,7 @@ export const Main = () => {
             placeholder="Type here..."
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
-            onKeyPress={(e) => {
-          if (e.key === 'Enter' && !isSendDisabled) {
-            handleSend();
-          }
-        }}
+            onKeyPress={handleInputKeyPress}    
           />
           <div className="icons-container">
             <button className="input-icon" onClick={clearChatHistory}>
@@ -414,35 +275,33 @@ export const Main = () => {
             )}
           </div>
           <img
-        src="https://s3-alpha-sig.figma.com/img/9ad7/2d2d/649a3f001361586c198c4722816c0ea8?Expires=1718582400&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4&Signature=N0cvCWBEysZodVxR1eQDUU04z2RMQ6Nx66fcvFBg27H7VPH4FewULfxca~9UMCPCOwrGg6i3BYhHYrQ2FEV0jkXs8M~f66H7DgTfQXqbUzfCi8p33rCLlG~SZtHXtDIWcgax~nqACJdAoygGA0tqJryxEcNVVzLontMfaKRg2ENnsz4A64hSUQ-XcKD78~HViKRG5s54-cwDKQ1BvWhS3AOUSAxW0K7b-GkS~yFiHsq44thbqJhW~WXYIlZchMvaZn40fRBc4mJpAqS2cXn3VCMTZ7mq5913KZgO5OLxIg6uxNpxqjB0-s1A7qzodHllJ9KOmDiCSv3fcLPwtfIaIQ__"
+        src="https://ai-agents18.s3.ap-south-1.amazonaws.com/audiosmith-sendbtn.jpg"
         alt="Send"
-        className={`send-icon ${isSendDisabled ? 'disabled' : ''}`}
-        onClick={() => {
-          if (!isSendDisabled) handleSend(inputText);
-        }}
-        style={{ cursor: isSendDisabled ? 'not-allowed' : 'pointer', opacity: isSendDisabled ? 0.5 : 1 }}
+        className={`send-icon ${isSendDisabled(inputText) ? 'disabled' : ''}`}
+        onClick={handleSendButtonClick}
+        style={{ cursor: isSendDisabled(inputText) ? 'not-allowed' : 'pointer', opacity: isSendDisabled ? 0.5 : 1 }}
       />
         </div>
 
-        {isListening && (
-          <div className="listening-animation">
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-          </div>
-        )}
+        {isListening && !showAnimation && (
+  <div className="listening-animation">
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+  </div>
+)}
 
-        {showAnimation && (
-          <div className="speaking-animation">
-            <div>
-              <div></div>
-              <div></div>
-              <div></div>
-            </div>
-          </div>
-        )}
+{showAnimation && (
+  <div className="speaking-animation">
+    <div>
+      <div></div>
+      <div></div>
+      <div></div>
+    </div>
+  </div>
+)}
       </div>
     </>
   );

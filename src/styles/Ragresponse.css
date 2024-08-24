@@ -1,0 +1,207 @@
+.chat-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .chat-message {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .user-query {
+    align-self: flex-end;
+    background-color: #424242;
+    color: white;
+    padding: 10px;
+    border-radius: 10px 10px 0 10px;
+    max-width: 80%;
+  }
+  
+  .assistant-response {
+    align-self: flex-start;
+    background-color: #242424;
+    color: white;
+    padding: 10px;
+    border-radius: 10px 10px 10px 0;
+    max-width: 80%;
+  }
+  
+  .document-sources {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  
+  .document-source {
+    display: flex;
+    align-items: center;
+    padding: 5px 10px;
+    background-color: #333;
+    border-radius: 20px;
+    text-decoration: none;
+    color: white;
+    font-size: 0.8em;
+    transition: background-color 0.2s;
+  }
+  
+  .document-source:hover {
+    background-color: #444;
+  }
+  
+  .source-icon {
+    margin-right: 5px;
+  }
+  
+  .source-info {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .source-title {
+    margin: 0;
+    font-weight: bold;
+  }
+  
+  .source-url {
+    color: #aaa;
+  }
+  
+  .input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  
+  .input-box {
+    flex: 1;
+    padding: 10px;
+    border-radius: 20px;
+    border: 1px solid #444;
+    background-color: #333;
+    color: white;
+  }
+  
+  .icons-container {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .input-icon,
+  .stop-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #E9CA91;
+  }
+  
+  .send-icon {
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+  }
+  
+  .send-icon.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+
+
+
+
+
+
+
+/* Existing styles... */
+
+.response-container {
+    background-color: rgba(233, 202, 145, 0.1);
+    border-radius: 8px;
+    padding: 10px;
+    margin-top: 10px;
+  }
+  
+  .document-sources {
+    margin-bottom: 10px;
+  }
+  
+  .sources-header,
+  .response-header {
+    display: flex;
+    align-items: center;
+    color: #E9CA91;
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+  }
+  
+  .sources-header svg,
+  .response-header svg {
+    margin-right: 5px;
+  }
+  
+  
+  .sources-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .document-source {
+    display: flex;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    padding: 6px 10px;
+    text-decoration: none;
+    color: #fff;
+    transition: background-color 0.2s, transform 0.2s;
+    max-width: calc(50% - 4px);
+    overflow: hidden;
+  }
+  
+  .document-source:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+  }
+  
+  .source-icon {
+    margin-right: 8px;
+    color: #E9CA91;
+    font-size: 1.2rem;
+  }
+  
+  .source-info {
+    overflow: hidden;
+  }
+  
+  .source-title {
+    margin: 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .response-text {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    padding: 10px;
+  }
+  
+  .response-text p {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: #fff;
+  }
+  
+  @media (max-width: 768px) {
+    .document-source {
+      max-width: 100%;
+    }
+  }
