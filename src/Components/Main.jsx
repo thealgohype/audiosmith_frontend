@@ -251,8 +251,8 @@ export const Main = () => {
                     onChange={(e) => setModel(e.target.value)}
                   >
                     <option value="gpt-3.5-turbo">GPT-3.5-turbo</option>
-                    <option value="gpt-4">GPT-4</option>
-                    <option value="claude-sonneT">Claude-sonne</option>
+                    <option value="gpt-4o">GPT-4</option>
+                    <option value="claude-sonnet">Claude-sonne</option>
                     <option value="claude-opus">Claude-opus</option>
                     <option value="google-gemini">Gemini</option>
                     <option value="llama3-groq">LlAMA-3-groq</option>
